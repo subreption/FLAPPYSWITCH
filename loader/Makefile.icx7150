@@ -1,0 +1,42 @@
+# loader/Makefile
+OBJCOPY = $(TOOLCHAIN_PATH)/usr/bin/armeb-buildroot-linux-gnueabi-objcopy
+STRIP = $(TOOLCHAIN_PATH)/usr/bin/armeb-buildroot-linux-gnueabi-strip
+CC = $(TOOLCHAIN_PATH)/usr/bin/armeb-buildroot-linux-gnueabi-gcc
+LD_LIBRARY_PATH = $(TOOLCHAIN_PATH)/usr/lib
+CFLAGS = -fPIC -Wall -O3 -s -DTARGET_ICX7150=1 $(EXTRA_CFLAGS)
+LDFLAGS = -lpthread -ldl -shared -L$(TOOLCHAIN_PATH)/usr/lib
+LIBNAME = loader.so
+
+export LD_LIBRARY_PATH
+
+all: $(LIBNAME)
+
+$(LIBNAME): murmurhash.o partition.o loader.o infector.o common.o devices.o tftp.o
+	$(CC) $(LDFLAGS) -o $(LIBNAME) murmurhash.o partition.o devices.o loader.o infector.o common.o tftp.o
+	$(STRIP) -X -s $(LIBNAME)
+	$(OBJCOPY) --remove-section .comment $(LIBNAME)
+
+loader.o: loader.c loader.h
+	$(CC) $(CFLAGS) -c loader.c -o loader.o
+
+common.o: common.c common.h
+	$(CC) $(CFLAGS) -c common.c -o common.o
+
+devices.o: devices.c devices.h
+	$(CC) $(CFLAGS) -c devices.c -o devices.o
+
+infector.o: infector.c infector.h
+	$(CC) $(CFLAGS) -c infector.c -o infector.o
+
+partition.o: partition.c
+	$(CC) $(CFLAGS) -c partition.c -o partition.o
+
+murmurhash.o: murmurhash.c
+	$(CC) $(CFLAGS) -c murmurhash.c -o murmurhash.o
+
+tftp.o: tftp.c tftp.h
+	$(CC) $(CFLAGS) -c tftp.c -o tftp.o
+
+clean:
+	rm -f *.o $(LIBNAME)
+

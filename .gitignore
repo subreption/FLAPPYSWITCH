@@ -1,0 +1,6 @@
+/target
+*.o
+demos/*.cast
+loader/*.so
+core_*_FastIron-*
+
